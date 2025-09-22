@@ -181,7 +181,15 @@ def run_q1(data_root="./源域数据集", out_dir="./q1_tf_out",
     plt.yticks(range(len(id2cls)), [id2cls[i] for i in range(len(id2cls))])
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]): plt.text(j,i,str(cm[i,j]),ha="center",va="center")
-    plt.tight_layout(); plt.show()
+    plt.tight_layout(); 
+    
+    
+    import matplotlib.pyplot as plt
+    from matplotlib import font_manager
+
+    # 设置字体为支持中文的字体，例：SimHei (黑体)
+    plt.rcParams['font.family'] = 'SimHei'
+    plt.show()
 
     model.save(os.path.join(out_dir,"best_model.h5"))
     print(f"[输出] 模型已保存：{os.path.join(out_dir,'best_model.h5')}")
