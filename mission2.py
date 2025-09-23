@@ -227,7 +227,7 @@ def run_q1(data_root="./源域数据集", out_dir="./q1_tf_out",
 def build_args():
     p = argparse.ArgumentParser("第一问：源域故障智能识别（TensorFlow ResNet1D）", allow_abbrev=False)
     p.add_argument("--data_root", type=str, default="./源域数据集", help="源域数据根目录（默认 ./源域数据集）")
-    p.add_argument("--out_dir",  type=str, default="./q1_tf_out")
+    p.add_argument("--out_dir",  type=str, default="./q2_tf_out")
     p.add_argument("--fs",       type=int, default=12000)
     p.add_argument("--win_sec",  type=float, default=1.0)
     p.add_argument("--overlap",  type=float, default=0.5)
