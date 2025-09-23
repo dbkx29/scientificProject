@@ -8,17 +8,9 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 
 import tensorflow as tf
-from tensorflow.keras import layers, models, losses
+from tensorflow.keras import layers, models, losses, optimizers
 from scipy.signal import welch
 from scipy.stats import entropy as sp_entropy
-
-# ========== 关键修复点 1：使用 legacy.Adam，避免解冻后 KeyError ==========
-try:
-    AdamLegacy = tf.keras.optimizers.legacy.Adam
-except Exception:
-    # 极少环境没有 legacy，回退到普通 Adam（一般也能跑）
-    from tensorflow.keras import optimizers
-    AdamLegacy = optimizers.Adam
 
 # ================== 中文 & 随机性 & argv ==================
 def setup_chinese():
@@ -375,7 +367,7 @@ def train_fixmatch(args):
     ds_u = tf.data.Dataset.from_tensor_slices((Xu[:,:,None],)).shuffle(len(Xu)).batch(bs).prefetch(tf.data.AUTOTUNE)
 
     # ========== 关键修复点 2：legacy.Adam + None 梯度过滤 ==========
-    opt = AdamLegacy(learning_rate=args.lr)
+    opt = optimizers.Adam(learning_rate=args.lr)
     ce  = losses.SparseCategoricalCrossentropy()
 
     hist = dict(sup=[], cons=[], total=[], acc=[])
@@ -498,7 +490,7 @@ def build_args():
     p.add_argument("--k_classes",   type=int, default=4,
                    help="KMeans 簇数（纯无标注时常取 4 对应 B/IR/OR/N）")
     # 训练
-    p.add_argument("--batch_size",  type=int, default=128)
+    p.add_argument("--batch_size",  type=int, default=4)
     p.add_argument("--epochs",      type=int, default=20)
     p.add_argument("--lr",          type=float, default=5e-4)
     p.add_argument("--tau",         type=float, default=0.9, help="FixMatch 伪标签阈值")

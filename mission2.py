@@ -126,21 +126,49 @@ def resnet1d_block(x, filters, stride=1):
     x = layers.add([x, shortcut]); x = layers.ReLU()(x)
     return x
 
+# def build_resnet1d(input_len, n_classes):
+#     inp = layers.Input(shape=(input_len,1))
+#     x = layers.Conv1D(32,7,strides=2,padding="same",use_bias=False)(inp)
+#     x = layers.BatchNormalization()(x); x = layers.ReLU()(x)
+#     x = layers.MaxPool1D(3,strides=2,padding="same")(x)
+#     x = resnet1d_block(x,64,1)
+#     x = resnet1d_block(x,128,2)
+#     x = resnet1d_block(x,256,2)
+#     x = layers.GlobalAveragePooling1D()(x)
+#     out = layers.Dense(n_classes, activation="softmax")(x)
+#     return models.Model(inp, out)
+
 def build_resnet1d(input_len, n_classes):
-    inp = layers.Input(shape=(input_len,1))
-    x = layers.Conv1D(32,7,strides=2,padding="same",use_bias=False)(inp)
-    x = layers.BatchNormalization()(x); x = layers.ReLU()(x)
-    x = layers.MaxPool1D(3,strides=2,padding="same")(x)
-    x = resnet1d_block(x,64,1)
-    x = resnet1d_block(x,128,2)
-    x = resnet1d_block(x,256,2)
+    inp = layers.Input(shape=(input_len, 1))
+    
+    # 使用小卷积核，减少显存消耗
+    x = layers.Conv1D(32, 3, strides=1, padding="same", use_bias=False)(inp)
+    x = layers.BatchNormalization()(x)
+    x = layers.ReLU()(x)
+    
+    # 减少最大池化的步幅
+    x = layers.MaxPool1D(2, strides=2, padding="same")(x)
+    
+    # 残差块
+    x = resnet1d_block(x, 32, 1)  # 降低残差块通道数
+    x = resnet1d_block(x, 64, 2)  # 降低通道数
+    x = resnet1d_block(x, 128, 2) # 降低通道数
+    
+    # 全局平均池化
     x = layers.GlobalAveragePooling1D()(x)
+    
+    # 加入 Dropout 防止过拟合
+    x = layers.Dropout(0.3)(x)
+    
+    # 输出层
     out = layers.Dense(n_classes, activation="softmax")(x)
+    
     return models.Model(inp, out)
+
 
 # ================== 训练/评估主流程 ==================
 def run_q1(data_root="./源域数据集", out_dir="./q1_tf_out",
-           fs=12000, win_sec=1.0, overlap=0.5, batch_size=128,
+           fs=12000, win_sec=1.0, overlap=0.5, batch_size=8,
            epochs=20, lr=1e-3, val_ratio=0.2, zscore=True):
     set_seed(42)
     os.makedirs(out_dir, exist_ok=True)
